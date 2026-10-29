@@ -1,0 +1,51 @@
+# 依赖和缓存
+/.deps/
+/.runtime/
+/.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+# 自动生成的计划；实际执行计划保留在数据目录
+/configs/*.json
+/configs.zip
+# 数据、模型和运行产物
+/logs/
+/runs/
+/training_runs/
+/checkpoints/
+/datasets/
+/shards/
+/iq/
+/audit/
+/status/
+/rejected/
+/releases/
+/ACTIVE_SOURCE_CHECK.json
+/environment.log
+**/software_validation.json
+*.log
+*.pid
+*.lock
+*.partial
+*.partial.*
+*.uploading
+*.restoring
+*.pt
+*.pth
+# 认证信息和临时传输状态
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+transport.json
+bootstrap_command.txt
+# 实测派生资料、采集元数据及旧环境报告仅留在服务器，不随代码推送。
+/reference/reference_profile.json
+/reference/verified_carriers.json
+/reference/实测IQ特征分析报告.md
+/reference/深入分析报告.md
+/reference/server_acceptance_initial.json
+/reference/server_matlab.json
+/training_compat/对话对接记录.md
+# reference/synthetic*.mat 是运行资产，不能忽略所有 MAT 文件。

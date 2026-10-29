@@ -1,0 +1,85 @@
+{
+  "purpose": "Synthetic valid SIB1 ASN.1 payload; identifiers replaced",
+  "hex": "68400403000100000019206a100829a05492c1100c00",
+  "sha256": "049c455e45cb5666bf05fc93dd8fe50ec43a5b1a72bc992bd0aca2ddd6a7e08a",
+  "decoded": {
+    "message": [
+      "c1",
+      [
+        "systemInformationBlockType1",
+        {
+          "cellAccessRelatedInfo": {
+            "plmn-IdentityList": [
+              {
+                "plmn-Identity": {
+                  "mcc": [
+                    0,
+                    0,
+                    1
+                  ],
+                  "mnc": [
+                    0,
+                    1
+                  ]
+                },
+                "cellReservedForOperatorUse": "notReserved"
+              }
+            ],
+            "trackingAreaCode": [
+              1,
+              16
+            ],
+            "cellIdentity": [
+              1,
+              28
+            ],
+            "cellBarred": "notBarred",
+            "intraFreqReselection": "allowed",
+            "csg-Indication": false
+          },
+          "cellSelectionInfo": {
+            "q-RxLevMin": -62,
+            "q-RxLevMinOffset": 1
+          },
+          "p-Max": 23,
+          "freqBandIndicator": 3,
+          "schedulingInfoList": [
+            {
+              "si-Periodicity": "rf16",
+              "sib-MappingInfo": []
+            }
+          ],
+          "si-WindowLength": "ms20",
+          "systemInfoValueTag": 6,
+          "nonCriticalExtension": {
+            "lateNonCriticalExtension": [
+              "SystemInformationBlockType1-v8h0-IEs",
+              {
+                "nonCriticalExtension": {
+                  "nonCriticalExtension": {
+                    "nonCriticalExtension": {
+                      "nonCriticalExtension": {
+                        "nonCriticalExtension": {
+                          "schedulingInfoList-v12j0": [
+                            {},
+                            {},
+                            {
+                              "sib-MappingInfo-v12j0": [
+                                "sibType24-v1530"
+                              ]
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        }
+      ]
+    ]
+  },
+  "source_template_evidence": "Repeated CRC valid and PER-roundtrip-valid SIB1"
+}

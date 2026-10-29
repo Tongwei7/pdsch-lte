@@ -1,0 +1,65 @@
+{
+  "purpose": "Comments and layout only; no dataset generation or algorithm changes",
+  "python_syntax": "compileall passed",
+  "python_format": "Black check passed",
+  "matlab_syntax_and_format": "MISS_HIT parsed 3 files; style check passed",
+  "matlab_ast_comparison": "Same parsed program tree before and after",
+  "files": [
+    {
+      "path": "tools/accept_dataset.py",
+      "executable_ast_unchanged": true,
+      "before_sha256": "7c7e29342765cb6b805619bff5518f7b4e8f6001ff7ff1a3147fb18a7ea521f8",
+      "after_sha256": "2446b63dfef76a826f55828c5e19f66a10fcc93a4612848a5daddfc9f785188c"
+    },
+    {
+      "path": "tools/local_transport.py",
+      "executable_ast_unchanged": true,
+      "before_sha256": "6a4f754d33d8028304ca8f6ca5c4ee8efe7e7f06db138bac46696e86956014d6",
+      "after_sha256": "16dc410a1d6e5adc86db1bcfc4b1d2b0d50e009da5cf2f9846aeb91a51ec8e16"
+    },
+    {
+      "path": "tools/make_assets.py",
+      "executable_ast_unchanged": true,
+      "before_sha256": "ed42e043a10913c4e58fcaba6d8a11d3ae103c235990c07181bbeadaf0306e86",
+      "after_sha256": "40434009e02241da01d037ddeb6289631b466bf6f18d661b48bf0435a813ef13"
+    },
+    {
+      "path": "tools/package_project.py",
+      "executable_ast_unchanged": true,
+      "before_sha256": "f23a522e429a7bd19c2f5803eded84f67f84125d3cd438641e617ca28bfc830e",
+      "after_sha256": "5c2c15d0dc5218e23bdbaf00ddd6d629794a9bf69ad6a1a43014e0724fb4b3d6"
+    },
+    {
+      "path": "tools/project_transfer.py",
+      "executable_ast_unchanged": true,
+      "before_sha256": "c503e50f567c274dfb3568dbcbea4347996ee0693810384b4c3f21b712b3ba1f",
+      "after_sha256": "e1d87110238ee5a1643301fbc7490ea89eb9ed176edcb85617e208c40410396e"
+    },
+    {
+      "path": "tools/run_server.py",
+      "executable_ast_unchanged": true,
+      "before_sha256": "9a60afa89d5cc95bd35418a9a95c723e5aea8fbaf5931a647931eea6a75d928f",
+      "after_sha256": "7284fab9effd5c5fdfd55b7c18f417aa50f0e5dad7dcf39fe4502c56be40d07b"
+    },
+    {
+      "path": "matlab/lte_dataset_generate.m",
+      "executable_ast_unchanged": true,
+      "before_sha256": "0a861eb152d68eba45adf20c5935d0663260084e84bf5131fb56ddf648c770fe",
+      "after_sha256": "99547c0d3c8e0f598a78f8d3889d48d71035a991287edf6883b54faa1cac4665"
+    },
+    {
+      "path": "matlab/render_dataset_report.m",
+      "executable_ast_unchanged": true,
+      "before_sha256": "981375f66378d9dd47c432fe8f6d7c98ac7250bfeb8e078f39b140188ff221df",
+      "after_sha256": "dbedbbaf20fa4d7965539ab8853b63614f760bb2d19bea10c1ed61d5f46c802a"
+    },
+    {
+      "path": "matlab/validate_link.m",
+      "executable_ast_unchanged": true,
+      "before_sha256": "1a8c4c023752c4f89f4c10952dd10f01272cd875164d3fc4d7fcd95d48522054",
+      "after_sha256": "a8fcfc170ac41d22f3007afd3b79c9a3af787d5cefe4d42f16ba88fe3b35cdb9"
+    }
+  ],
+  "total_source_files": 9,
+  "passed": true
+}

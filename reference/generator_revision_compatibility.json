@@ -1,0 +1,15 @@
+{
+  "kind": "verified_comment_only",
+  "reason": "Restore the commented MATLAB sources without invalidating equivalent existing captures; exact full-content match only.",
+  "revisions": {
+    "38d76333ab04dfefcaa869289e66d9e08fd5cfdcd8c36ce1013251ac74b35af9": "4989a97967f22782113663717248c8982915b27fce1a799f577296738ed8069f"
+  },
+  "matlab_ast_equivalence_report": "STYLE_VERIFICATION.json",
+  "assets_sha256": {
+    "synthetic_sib1.mat": "a6decd28a76a200497a34c6be388bd3f1398ec825b856c32ee47d08b7e74c874",
+    "synthetic_sib2.mat": "7931bcbc1e7346993bca8dc6962706bcffea3a332a8908bf2eb0a7f17c43fdf0",
+    "synthetic_sib2_100.mat": "7931bcbc1e7346993bca8dc6962706bcffea3a332a8908bf2eb0a7f17c43fdf0",
+    "synthetic_sib2_50.mat": "76c931af39f9356d39c0d19824dbad9d02df95b2cde482b91c42dc1e76be4937",
+    "synthetic_sib2_75.mat": "aae291ae437fd12efb9c37bc4766564740afbaf01691f61f7817235e1083e6cc"
+  }
+}

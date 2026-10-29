@@ -5,7 +5,7 @@ Server data root: `/data/luorongwei/pdsch_lte`.
 
 The active `matlab/` and `tools/` directories use the commented sources.
 Each source has one canonical location, without reading copies or directory
-aliases. See `注释版说明.md`
+aliases. See `代码阅读指南.md`
 for the verified comment-only revision compatibility and deployment checks.
 
 Target: the selected LTE cell's PDSCH data-RE occupancy, including SI PDSCH.

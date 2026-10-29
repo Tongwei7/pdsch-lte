@@ -1,0 +1,10 @@
+{
+  "folders": [
+    { "name": "LTE 仿真代码", "path": "/home/luorongwei/pdsch_lte" },
+    { "name": "LTE 数据集", "path": "/data/luorongwei/pdsch_lte" }
+  ],
+  "settings": {
+    "files.watcherExclude": { "**/shards/**": true, "**/iq/**": true, "**/.deps/**": true },
+    "search.exclude": { "**/shards/**": true, "**/iq/**": true, "**/.deps/**": true }
+  }
+}
