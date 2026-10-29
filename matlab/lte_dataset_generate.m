@@ -19,6 +19,8 @@ function summary = lte_dataset_generate(configPath, workerIndex, workerCount)
     end
     root = fileparts(fileparts(mfilename('fullpath')));
     cfg = jsondecode(fileread(configPath));
+    assert(isfield(cfg, 'management_version') && cfg.management_version == 2, ...
+        'Use tools/run_server.py to create or resume a frozen v2 batch plan');
     if ~isfield(cfg, 'generator_revision')
         cfg.generator_revision = 'development-unversioned';
     end
@@ -56,7 +58,10 @@ function summary = lte_dataset_generate(configPath, workerIndex, workerCount)
             if isfield(old, 'state') && ...
                 strcmp(old.state, 'complete') && ...
                 isfield(old, 'generator_revision') && ...
-                strcmp(old.generator_revision, cfg.generator_revision)
+                strcmp(old.generator_revision, cfg.generator_revision) && ...
+                isfield(job, 'task_sha256') && isfield(old, 'task_sha256') && ...
+                strcmp(old.task_sha256, job.task_sha256) && ...
+                all(cellfun(@(p)exist(fullfile(out, p), 'file') ~= 0, old.files))
                 done = done + 1;
                 continue
             end
@@ -68,6 +73,7 @@ function summary = lte_dataset_generate(configPath, workerIndex, workerCount)
             r.split = job.split;
             r.group_id = job.group_id;
             r.generator_revision = cfg.generator_revision;
+            r.task_sha256 = job.task_sha256;
             % 同步/标签对齐不可靠时拒绝，不能改成全零负样本。
             if ~r.alignment_valid
                 r.state = 'rejected';
@@ -85,6 +91,7 @@ function summary = lte_dataset_generate(configPath, workerIndex, workerCount)
                 err.message, ...
                 'stack', err.stack, 'split', job.split, 'group_id', job.group_id, ...
                 'generator_revision', cfg.generator_revision);
+            r.task_sha256 = job.task_sha256;
             writejson(marker, r);
             fprintf(2, 'FAILED %s: %s\n%s\n', id, err.message, getReport(err, 'extended', ...
                 'hyperlinks', 'off'));
@@ -249,10 +256,14 @@ function result = generateCapture(job, cfg, root)
     % -v7 兼容当前 scipy.io.loadmat；临时文件写完后再替换正式文件。
     % audit 中真实 RNTI、分配和信道设定只用于核查，禁止作为部署模型输入。
     temporary = [shard '.partial.mat'];
-    save(temporary, 'rx_real', 'rx_imag', 'subframe_index', 'label_re', 'label_prb', ...
-        'label_prb_slot', ...
-        'public_excluded', 'public_valid', 'crs_h_real', 'crs_h_imag', 'crs_noise_variance', ...
-        'cfi_estimate', 'cfi_hard_mismatch', '-v7');
+    fields = {'rx_real', 'rx_imag', 'subframe_index', 'label_re', 'label_prb', ...
+        'label_prb_slot', 'public_excluded', 'public_valid', 'crs_noise_variance', ...
+        'cfi_estimate', 'cfi_hard_mismatch'};
+    % 常规训练不使用完整 CRS 插值数组；仅诊断样本保留，I/Q 仍为 single。
+    if ~isfield(job, 'save_crs') || job.save_crs
+        fields = [fields {'crs_h_real', 'crs_h_imag'}];
+    end
+    save(temporary, fields{:}, '-v7');
     movefile(temporary, shard, 'f');
     audit = struct('dataset_version', 'lte-pdsch-occupancy-v1', 'reader_schema', ...
         'pdsch-occupancy-proposal-v1', ...
@@ -344,8 +355,8 @@ function [wave, truth, grants, base] = makeCell(enb, nsf, job, root, isTarget)
         enb.CFI = cfiValues(si + 1);
         sg = grid(:, si * 14 + (1:14), :);
         occupied = false(N, 2);
-        pi = ltePDCCHInfo(enb);
-        pbits = -ones(pi.MTot, 1);
+        pdcchInfo = ltePDCCHInfo(enb);
+        pbits = -ones(pdcchInfo.MTot, 1);
         pending = struct('rnti', {}, 'mcs', {}, 'prbs', {}, 'dci', {}, 'common', {}, 'scheme', ...
             {}, 'layers', {}, 'pmi', {}, 'ue', {}, 'payload', {});
         % 公共系统信息优先排入队列，使用 SI-RNTI=65535 和 QPSK。

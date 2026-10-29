@@ -19,7 +19,7 @@ unioned. Occupancy survives low received power and decode failure.
 * `label_prb_slot`: uint8 `[K/12,2,S]`; union over 12 subcarriers and 7 symbols.
 * `public_excluded`, `public_valid`: uint8 `[K,14,S]`; receiver-derived known
   non-PDSCH sites, with explicit unknowns. No transmitter CFI is substituted.
-* `crs_h_real`, `crs_h_imag`: single `[K,14,1,2,S]`; receiver-estimated channels
+* `crs_h_real`, `crs_h_imag` (optional diagnostics): single `[K,14,1,2,S]`; receiver-estimated channels
   for target CRS ports 0/1, NOT ideal PDSCH effective channels in all modes.
 * `crs_noise_variance`: single `[1,S]`; receiver estimation residual, not oracle
   AWGN power. May include interference and estimator error.
@@ -35,7 +35,7 @@ start at a radio-frame boundary. SFN and time offsets are audit metadata.
 ## Isolation
 
 Training input is I/Q/power and optionally receiver public maps. Extra CRS
-fields are preserved for a future explicitly versioned input extension. The
+fields are preserved on acceptance/diagnostic captures for a future explicitly versioned input extension. The
 existing network's PRB head is per subframe, not per slot: slot labels are
 available for later head expansion and precise evaluation.
 

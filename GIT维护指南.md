@@ -81,7 +81,9 @@ PYTHONPATH=/home/luorongwei/pdsch_lte/.deps python3 tools/record_run.py \
 
 每次使用新的实验目录。工具默认拒绝未提交状态和覆盖历史记录。
 `--allow-dirty` 只供调试，会明确记录状态，不能声称完全由提交号复现。
-现有生成启动器会重建计划，其 `generation_plan.json` 仍是实际配置的依据。
+新版生成启动器只在阶段首次启动时冻结计划，续跑只读批次内的 `generation_plan.json`。
+默认第三阶段 2,000 份；新批次在 `/data/luorongwei/pdsch_lte/batches/<批次名>/`。
+任务参数摘要与生成源码/运行环境一起核对，变化时使用新批次名，禁止覆盖旧批次。
 Git 纳管前已经开始的批次，不能事后声称由新提交启动。
 
 ## 查看和恢复历史

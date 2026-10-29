@@ -127,12 +127,12 @@ def assets():
     )
 
 
-def plan(name, groups, keep_sf):
+def build_plan(name, groups, keep_sf, output_root=None, seed_base=2026102900):
     """生成确定性任务清单。
 
     name 是批次名；groups 是捕获任务数（不全等于独立传播实现数）；
     keep_sf 是每份捕获导出的子帧数，1 个子帧为 1 ms。
-    pilot/production 使用相同基础种子序列，重叠部分不能重复计为独立样本。
+    不同阶段使用不重叠的种子区间；同源的衰落/间隙配对仍留在同一集合。
     """
     scenarios = [
         "clean",
@@ -149,7 +149,7 @@ def plan(name, groups, keep_sf):
     ]
     jobs = []
     for i in range(groups):
-        rng = np.random.default_rng(2026102800 + i)
+        rng = np.random.default_rng(seed_base + i)
         scenario = scenarios[i % len(scenarios)]
         nrb = [100, 50, 75][i % 3]
         # 在生成之前划分集合；后面的衰落/真实间隙配对继续沿用同一分组。
@@ -173,7 +173,7 @@ def plan(name, groups, keep_sf):
             dict(
                 id=f"{name}_{i:06d}",
                 group_id=f"{name}_independent_capture_{i:06d}",
-                seed=int(2026102800 + i),
+                seed=int(seed_base + i),
                 split=split,
                 scenario=scenario,
                 nrb=nrb,
@@ -194,6 +194,7 @@ def plan(name, groups, keep_sf):
                 spatial_mux=scenario == "spatial_mux",
                 distributed=scenario == "distributed",
                 save_iq=name == "acceptance" or i % 50 == 0,
+                save_crs=name == "acceptance" or i % 50 == 0,
                 verify_payload=name == "acceptance",
             )
         )
@@ -208,13 +209,20 @@ def plan(name, groups, keep_sf):
     config = dict(
         dataset_version="lte-pdsch-occupancy-v1",
         reader_schema="pdsch-occupancy-proposal-v1",
-        output_root=f"/data/luorongwei/pdsch_lte/{name}",
+        output_root=str(output_root or f"/data/luorongwei/pdsch_lte/{name}"),
         keep_subframes=keep_sf,
         requested_windows=groups * (keep_sf // 10),
         jobs=jobs,
         stop_on_failure=name == "acceptance",
+        maximum_rejection_fraction=0.0 if name == "acceptance" else 0.2,
         note="Scenario/MCS/traffic/SNR distributions are synthetic coverage assumptions; measured full scan incomplete.",
     )
+    return config
+
+
+def plan(name, groups, keep_sf, seed_base):
+    """仅导出供阅读的新计划；运行批次使用自己已冻结的 generation_plan.json。"""
+    config = build_plan(name, groups, keep_sf, seed_base=seed_base)
     dest = ROOT / "configs"
     dest.mkdir(exist_ok=True)
     (dest / f"{name}.json").write_text(
@@ -225,9 +233,12 @@ def plan(name, groups, keep_sf):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--plans-only", action="store_true")
+    parser.add_argument("--production-captures", type=int, default=2000)
     args = parser.parse_args()
     if not args.plans_only:
         assets()
-    plan("acceptance", 22, 30)
-    plan("pilot", 500, 100)
-    plan("production", 20000, 100)
+    if not 100 <= args.production_captures <= 100000:
+        parser.error("--production-captures must be between 100 and 100000")
+    plan("acceptance", 22, 30, 2026102900)
+    plan("pilot", 500, 100, 2027102900)
+    plan("production", args.production_captures, 100, 2028102900)

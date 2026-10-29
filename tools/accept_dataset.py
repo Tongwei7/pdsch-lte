@@ -14,6 +14,8 @@ from pathlib import Path
 import numpy as np
 from scipy.io import loadmat
 
+from batch_plan import digest
+
 ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -31,9 +33,27 @@ def finalize(directory, training_code=None, check_model=False):
     ]
     # 过滤其他生成器版本的记录，防止续跑时把旧文件误计入新批次。
     plan_path = directory / "generation_plan.json"
-    revision = (
-        json.loads(plan_path.read_text()).get("generator_revision") if plan_path.exists() else None
-    )
+    plan = json.loads(plan_path.read_text()) if plan_path.exists() else {}
+    revision = plan.get("generator_revision")
+    managed = plan.get("management_version") == 2
+    jobs = {j["id"]: j for j in plan.get("jobs", [])}
+    if managed:
+        content = {k: v for k, v in plan.items() if k != "plan_sha256"}
+        if digest(content) != plan.get("plan_sha256"):
+            raise ValueError("Frozen generation plan checksum mismatch")
+        if len({r.get("id") for r in records}) != len(records):
+            raise ValueError("Duplicate task status IDs")
+        for record in records:
+            expected = jobs.get(record.get("id"))
+            if (
+                not expected
+                or record.get("generator_revision") != revision
+                or record.get("task_sha256") != expected["task_sha256"]
+                or any(record.get(k) != expected[k] for k in ("split", "group_id"))
+            ):
+                raise ValueError("Status does not match frozen task parameters")
+            if record.get("state") == "complete" and not record.get("files"):
+                raise ValueError("Complete task has no shard files")
     stale = sum(r.get("generator_revision") != revision for r in records) if revision else 0
     if revision:
         records = [r for r in records if r.get("generator_revision") == revision]
@@ -55,6 +75,8 @@ def finalize(directory, training_code=None, check_model=False):
         split_groups[group] = split
         for relative in record["files"]:
             path = directory / relative
+            if not path.resolve().is_relative_to((directory / "shards").resolve()):
+                raise ValueError("Shard path escapes the stage shards directory")
             a = loadmat(path)
             re = a["label_re"]
             nrb, s = re.shape[0] // 12, re.shape[-1]
@@ -78,7 +100,7 @@ def finalize(directory, training_code=None, check_model=False):
             # 公共图是接收侧估计，可能判断错误。这里只统计错误排除数，
             # 不用发送真值“修补”输入，否则会造成部署时无法获得的信息泄漏。
             wrong_public = int(np.sum((a["public_excluded"] > 0) & (re > 0)))
-            digest = hashlib.sha256(path.read_bytes()).hexdigest()
+            file_checksum = hashlib.sha256(path.read_bytes()).hexdigest()
             rows.append(
                 dict(
                     schema="pdsch-occupancy-proposal-v1",
@@ -87,7 +109,7 @@ def finalize(directory, training_code=None, check_model=False):
                     group_id=group,
                     alignment_valid="1",
                     scenario=record["scenario"],
-                    sha256=digest,
+                    sha256=file_checksum,
                     dataset_version="lte-pdsch-occupancy-v1",
                     nrb=nrb,
                     subframes=s,
@@ -122,7 +144,21 @@ def finalize(directory, training_code=None, check_model=False):
         shards=stats,
         warning="Compatibility and mapping verification, not trained detection performance",
     )
-    report["passed"] = bool(rows) and not failures
+    report["plan_sha256"] = plan.get("plan_sha256")
+    report["missing_jobs"] = sorted(set(jobs) - {r["id"] for r in records})
+    report["execution_failures"] = [r for r in failures if r["state"] != "rejected"]
+    report["rejected"] = sum(r["state"] == "rejected" for r in failures)
+    report["requested_captures"] = len(jobs) if jobs else len(records)
+    report["rejection_fraction"] = report["rejected"] / max(report["requested_captures"], 1)
+    report["scenario_counts"] = {
+        s: sum(r.get("scenario") == s and r["state"] == "complete" for r in records)
+        for s in sorted({j["scenario"] for j in jobs.values()})
+    }
+    report["passed"] = (
+        bool(rows) and not report["execution_failures"] and not report["missing_jobs"]
+    )
+    report["passed"] &= report["rejection_fraction"] <= plan.get("maximum_rejection_fraction", 0)
+    report["passed"] &= all(report["scenario_counts"].values())
     # 直接使用现有读取器，而不是另写一个只为验收通过的简化读取器。
     if training_code and rows:
         sys.path.insert(0, str(Path(training_code).resolve()))
@@ -180,5 +216,5 @@ if __name__ == "__main__":
     parser.add_argument("--model", action="store_true")
     args = parser.parse_args()
     result = finalize(args.directory, args.training_code, args.model)
-    if not result["completed"]:
-        raise SystemExit("No successfully generated shards to accept")
+    if not result["passed"]:
+        raise SystemExit("Dataset acceptance failed; inspect acceptance_report.json")
